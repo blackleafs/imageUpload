@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <link rel="stylesheet" href="./cropper.min.css">
+    <title>Title</title>
+    <script>
+        document.documentElement.style.fontSize = document.documentElement.clientWidth / 7.5 + 'px';
+    </script>
+</head>
+<body>
+<!--文件上传-->
+<input type="file" class="js-uploadfile">
+<!--确定裁剪-->
+<input type="button" class="js-ok" value="裁剪">
+<!--cropper基本结构-->
+<div class="container js-container" style="width: 100%;height: auto">
+    <img class="js-image" src="" style="width: 100%;height: auto">
+</div>
+<div style="width: 60%;height: auto;margin: 1rem 20%">
+    <img id="showImg" src="" alt="" style="width: 100%;height: auto">
+</div>
+<!--裁剪结果显示-->
+<br/>
+<div class="js-result"></div>
+<script>//其他js代码</script>
+<script src="jquery-1.11.0.js"></script>
+<script src="cropper.min.js"></script>
+<script>
+    var url = './index.php';
+    $(".js-uploadfile").on("change", function () {
+        var fr = new FileReader();
+        var file = this.files[0];
+
+        fr.readAsDataURL(file);
+        fr.onload = function () {
+            //这里初始化cropper
+            $('.js-image').attr('src', fr.result);
+            iniCropper()
+        };
+    });
+    var croppable = false;
+    function iniCropper() {
+        var $image = $('.js-image'),
+            image = $image[0];
+        $image.cropper({
+            dragMode: 'move',
+            aspectRatio: 1,
+            autoCropArea: 0.65,
+            restore: false,
+            viewMode: 1,
+            guides: false,
+            center: false,
+            highlight: false,
+            cropBoxMovable: false,
+            cropBoxResizable: false,
+            toggleDragModeOnDblclick: false,
+            rotatable: true,
+            checkOrientation: true,
+            ready: function () {
+                croppable = true;
+            }
+        });
+    }
+
+
+    $('.js-ok').on('click', function () {
+        var dataURL = $('.js-image').cropper("getCroppedCanvas", {
+            width: 200,
+            height: 200
+        });
+        var data = {
+            imgData: dataURL.toDataURL('image/png')
+        };
+        submit(url, data);
+    });
+
+    function submit(url, data) {
+        $.ajax({
+            type: 'POST',
+            url: url,
+            data: data,
+            success: function (res) {
+                $('#showImg').attr('src', res.img_name);
+            },
+            dataType: 'JSON'
+        })
+    }
+</script>
+</body>
+</html>
